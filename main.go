@@ -17,7 +17,7 @@ type Lexer struct {
 	keywords      []string
 	alphabet      string
 	numerals      string
-	symbol        string
+	symbols       string
 	lexical_table []LexicalTable
 	count         int
 	token_list    []string
@@ -39,18 +39,19 @@ func (lex *Lexer) tokenize(input string) {
 		lex.removeComment(input)
 		lex.extractAlphanumerics(input)
 		lex.extractWhiteSpace(input)
+		lex.extractSymbol(input)
 	}
 }
 
 // remove comment
 func (lex *Lexer) removeComment(input string) {
-	if lex.count >= len(input) && lex.count+1 >= len(input) {
+	if lex.count >= len(input) || lex.count+1 >= len(input) {
 		return
 	}
+	// fmt.Println("Try... removeComment")
 	index := lex.count
 	if input[index:index+2] == "//" {
 		index += 3
-		lex.count += index
 		for index < len(input) {
 			if string(input[index]) != "\n" {
 				index += 1
@@ -78,7 +79,9 @@ func (lex *Lexer) extractAlphanumerics(input string) {
 			break
 		}
 	}
+	// fmt.Println(temp_h)
 	lex.count = index
+	// fmt.Println(lex.count)
 }
 
 // extract whitespace they are also tokens but who cares...
@@ -99,12 +102,30 @@ func (lex *Lexer) extractWhiteSpace(input string) {
 	lex.count = index
 }
 
+func (lex *Lexer) extractSymbol(input string) {
+	if lex.count >= len(input) {
+		return
+	}
+	index := lex.count
+	temp_h := ""
+	if !lex.isIn(string(input[index]), lex.alphabet) &&
+		!lex.isIn(string(input[index]), lex.alphabet) &&
+		!(string(input[index]) == " ") &&
+		!(string(input[index]) == "\n") &&
+		!(string(input[index]) == "\t") {
+		temp_h += string(input[index])
+	}
+	temp_h = ""
+	index += 1
+	lex.count = index
+}
+
 func main() {
 	fmt.Println("Generating Lexical table...")
-	var lexer_obj = Lexer{keywords: []string{"module", "grammar"},
-		alphabet: "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	var lexer_obj = Lexer{keywords: []string{"module", "grammar", "preference", "collaspe-w"},
+		alphabet: "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-",
 		numerals: "0123456789"}
-	lexer_obj.tokenize("module \n")
+	lexer_obj.tokenize("Expr.Add = [a + b]\n")
 	// lexer_obj.removeComment("model lang\nimport lang2")
 	// lexer_obj.extractToken("module lang\nimport lang2")
 }
