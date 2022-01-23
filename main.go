@@ -122,7 +122,7 @@ func (lex *Lexer) extractSymbol(input string) {
 
 func main() {
 	fmt.Println("Generating Lexical table...")
-	var lexer_obj = Lexer{keywords: []string{"module", "grammar", "preference", "collaspe-w"},
+	var lexer_obj = Lexer{keywords: []string{"module", "grammar", "preference", "collaspe-w", "startsymbol"},
 		alphabet: "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-",
 		numerals: "0123456789"}
 	lexer_obj.tokenize("Expr.Add = [a + b]\n")
