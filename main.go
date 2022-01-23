@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type TokenRecord struct {
 	token_val  string
@@ -33,13 +35,10 @@ func (lex *Lexer) isIn(char, category string) bool {
 
 // tokenize the input
 func (lex *Lexer) tokenize(input string) {
-	// var token_list []string
-
-	// states := [4]string{"ALPHANUMERICS*", "WHITESPACE", "SYMBOLS", "NIL"}
-	// state := "NIL"
-	// temp_h := ""
 	for lex.count < len(input) {
 		lex.removeComment(input)
+		lex.extractAlphanumerics(input)
+		lex.extractWhiteSpace(input)
 	}
 }
 
@@ -64,51 +63,48 @@ func (lex *Lexer) removeComment(input string) {
 }
 
 // extract tokens
-func (lex *Lexer) extractToken(input string) {
-
+func (lex *Lexer) extractAlphanumerics(input string) {
+	if lex.count >= len(input) {
+		return
+	}
+	temp_h := ""
+	index := lex.count
+	for index < len(input) {
+		if lex.isIn(string(input[index]), lex.alphabet) ||
+			lex.isIn(string(input[index]), lex.numerals) {
+			temp_h += string(input[index])
+			index += 1
+		} else {
+			break
+		}
+	}
+	lex.count = index
 }
 
-//extract whitespace
-// func (lex *Lexer) extractWhitespace(input string) {
-// 	if lex.count >= len(input) {
-// 		return
-// 	}
-// 	index := lex.count
-// 	temp_h := ""
-// 	if lex.isIn(string(input[index]), lex.alphabet) {
-// 		temp_h += string(input[index])
-// 		index += 1
-// 	}
-// 	if lex.count >= len(input) {
-// 		return
-// 	}
-// 	for index < len(input) {
-// 		if string(input[index]) == "\t" {
-// 			temp_h += string(input[index])
-// 			index += 1
-// 		} else if string(input[index]) == "\n" {
-// 			temp_h += string(input[index])
-// 			index += 1
-// 		} else if string(input[index]) == " " {
-// 			temp_h += string(input[index])
-// 			index += 1
-// 		} else {
-// 			break
-// 		}
-// 	}
-// 	lex.count = index
-// }
-
-// constructor
-func (lex *Lexer) __init__(keywords []string, alphabet, numerals string) {
-	lex.keywords = keywords
+// extract whitespace they are also tokens but who cares...
+func (lex *Lexer) extractWhiteSpace(input string) {
+	if lex.count >= len(input) {
+		return
+	}
+	index := lex.count
+	temp_h := ""
+	for index < len(input) {
+		if string(input[index]) == " " || string(input[index]) == "\n" || string(input[index]) == "\t" {
+			temp_h += string(input[index])
+			index += 1
+		} else {
+			break
+		}
+	}
+	lex.count = index
 }
 
 func main() {
 	fmt.Println("Generating Lexical table...")
-	var lexer_obj Lexer
-	lexer_obj.__init__([]string{"module", "grammar"}, "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", "0123456789")
-	lexer_obj.tokenize("module\n")
+	var lexer_obj = Lexer{keywords: []string{"module", "grammar"},
+		alphabet: "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+		numerals: "0123456789"}
+	lexer_obj.tokenize("module \n")
 	// lexer_obj.removeComment("model lang\nimport lang2")
 	// lexer_obj.extractToken("module lang\nimport lang2")
 }
