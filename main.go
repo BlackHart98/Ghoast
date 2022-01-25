@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	// "github.com/blackhart98/ghoast/pkg/lexer"
 )
 
 type TokenRecord struct {
@@ -9,18 +10,13 @@ type TokenRecord struct {
 	token_type string
 }
 
-type LexicalTable struct {
-	token_record TokenRecord
-}
-
 type Lexer struct {
 	keywords      []string
 	alphabet      string
 	numerals      string
 	symbols       string
-	lexical_table []LexicalTable
+	lexical_table []TokenRecord
 	count         int
-	token_list    []string
 }
 
 // linear search ~ constant time amortized (I am dumb and might be wrong!)
@@ -33,7 +29,16 @@ func (lex *Lexer) isIn(char, category string) bool {
 	return false
 }
 
-// tokenize the input (very rough work)
+func (lex *Lexer) isIdentifier(word string) bool {
+	for i := 0; i < len(word); i++ {
+		if !lex.isIn(string(word[i]), lex.alphabet) {
+			return false
+		}
+	}
+	return true
+}
+
+// tokenize the input (very rough work there is a lot of work to do here)
 func (lex *Lexer) tokenize(input string) {
 	for lex.count < len(input) {
 		if lex.removeComment(input) {
@@ -62,7 +67,7 @@ func (lex *Lexer) removeComment(input string) bool {
 			if string(input[index]) != "\n" {
 				index += 1
 			} else {
-				lex.count = index
+				lex.count = index + 1
 				break
 			}
 		}
@@ -89,7 +94,8 @@ func (lex *Lexer) extractAlphanumerics(input string) bool {
 	}
 	// fmt.Println(temp_h)
 	if temp_h != "" {
-		lex.token_list = append(lex.token_list, temp_h)
+		lex.lexical_table = append(lex.lexical_table,
+			TokenRecord{token_val: temp_h, token_type: "ALPHANUMERIC"})
 		lex.count = index
 		return true
 	}
@@ -103,22 +109,21 @@ func (lex *Lexer) extractWhiteSpace(input string) bool {
 	}
 	index := lex.count
 	temp_h := ""
-	for index < len(input) {
-		if string(input[index]) == " " || string(input[index]) == "\n" || string(input[index]) == "\t" {
-			temp_h += string(input[index])
-			index += 1
-		} else {
-			break
-		}
+
+	if string(input[index]) == " " || string(input[index]) == "\n" || string(input[index]) == "\t" {
+		temp_h += string(input[index])
+		index += 1
 	}
 	if temp_h != "" {
-		lex.token_list = append(lex.token_list, temp_h)
+		lex.lexical_table = append(lex.lexical_table,
+			TokenRecord{token_val: temp_h, token_type: "WHITESPACE"})
 		lex.count = index
 		return true
 	}
 	return false
 }
 
+// extract symbols
 func (lex *Lexer) extractSymbol(input string) {
 	if lex.count >= len(input) {
 		return
@@ -133,7 +138,8 @@ func (lex *Lexer) extractSymbol(input string) {
 		temp_h += string(input[index])
 	}
 	if temp_h != "" {
-		lex.token_list = append(lex.token_list, temp_h)
+		lex.lexical_table = append(lex.lexical_table,
+			TokenRecord{token_val: temp_h, token_type: "SYMBOL"})
 	}
 	index += 1
 	lex.count = index
@@ -142,11 +148,12 @@ func (lex *Lexer) extractSymbol(input string) {
 func main() {
 	fmt.Println("Generating Lexical table...")
 	var lexer_obj = Lexer{keywords: []string{"module", "grammar", "preference", "collaspe-w", "startsymbol"},
-		alphabet: "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-",
+		alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 		numerals: "0123456789"}
-	lexer_obj.tokenize("//Expr.Add = [a + b]\nExpr.Sub = [a - b]\n")
-	for i := 0; i < len(lexer_obj.token_list); i++ {
-		fmt.Println(lexer_obj.token_list[i])
+	lexer_obj.tokenize("Expr.   Add    [[a   ]\n + b]\nExpr")
+	for i := 0; i < len(lexer_obj.lexical_table); i++ {
+		// fmt.Println("Hey")
+		fmt.Println(lexer_obj.lexical_table[i])
 	}
 	// lexer_obj.removeComment("model lang\nimport lang2")
 	// lexer_obj.extractToken("module lang\nimport lang2")
